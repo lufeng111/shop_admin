@@ -1,0 +1,84 @@
+<div>
+  <el-row>
+    <el-col>
+      <el-button type="success" plain @click="showCategoriesAddDialog">添加分类</el-button>
+    </el-col>
+  </el-row>
+  <!--
+    v-loading 是 elment-ui 中提供的一个自定义指令，用来实现加载中的loading效果
+    只要添加这个 v-loading 指令，那么，组件就有laoding效果了
+   -->
+  <el-table :data="categoriesList" stripe style="width: 100%" v-loading="loading">
+    <!--
+      el-table-tree-column 是一个第三方组件，用来实现表格展开功能（树形结构）
+
+        file-icon     文件图标
+        folder-icon   文件夹图片
+
+        tree-key 作用：用来与其他的节点进行区别，展开的时候，就可以只展开当前项
+          tree-key 的值表示：使用数据中的哪个属性来作为key
+
+        level-key 指定使用数据中的哪个属性来作为key
+          cat_level 表示：哪一级菜单
+
+        parent-key 用来收起菜单
+          它的值是 当前分类的父级id cat_pid
+
+        child-key 用来指定使用数据中的哪个属性表示子菜单
+          默认值为：children，所以，此处可以省略该配置
+
+        indent-size 表示缩进的宽度
+     -->
+    <el-table-tree-column tree-key="cat_id" level-key="cat_level" parent-key="cat_pid" child-key="children"
+      :indent-size="30" file-icon="icon icon-file" folder-icon="icon icon-folder" prop="cat_name" label="分类名称"></el-table-tree-column>
+
+    <el-table-column prop="cat_deleted" label="是否有效" width="180">
+      <template slot-scope="scope">
+        {{ scope.row.cat_deleted ? '无效': '有效' }}
+      </template>
+    </el-table-column>
+    <el-table-column label="菜单级别">
+      <template slot-scope="scope">
+        <span v-if="scope.row.cat_level === 0">一级</span>
+        <span v-else-if="scope.row.cat_level === 1">二级</span>
+        <span v-else>三级</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="操作">
+      <template slot-scope="scope">
+        <el-button type="primary" plain size="mini" icon="el-icon-edit"></el-button>
+        <el-button type="danger" plain size="mini" icon="el-icon-delete"></el-button>
+      </template>
+    </el-table-column>
+  </el-table>
+  <!-- 分页组件 -->
+  <el-pagination background layout="prev, pager, next" :total="total" :page-size="pageSize" :current-page.sync="curPage"
+    @current-change="changePage">
+  </el-pagination>
+
+  <!-- 对话框组件 -->
+  <el-dialog title="添加分类" :visible.sync="categoriesAddDialog" @close="closeCategoriesAddDialog">
+    <el-form :model="categoriesAddForm" ref="categoriesAddForm">
+      <el-form-item prop="cat_name" label="分类名称" label-width="120px">
+        <el-input v-model="categoriesAddForm.cat_name" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item prop="categoriesSelectedOptions" label="父级分类" label-width="120px">
+        <!--
+          级联选择器：el-cascader
+
+            options 数据源
+            v-model 选中项的集合
+            change 事件：当切换选项的时候会触发
+            change-on-select 如果为true，表示可以选择任意一级菜单
+         -->
+        <el-cascader :props="categoriesAddForm.defaultProps" :options="categoriesAddForm.categoriesAddList" v-model="categoriesAddForm.categoriesSelectedOptions"
+          :change-on-select="true" @change="handleChange">
+        </el-cascader>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="categoriesAddDialog = false">取 消</el-button>
+      <el-button type="primary" @click="addCategories">确 定</el-button>
+    </div>
+  </el-dialog>
+</div>

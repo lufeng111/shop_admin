@@ -1,0 +1,88 @@
+<div>
+  <!--
+    步骤条组件
+
+    active 表示当前激活的步骤, 从 0 开始
+    finish-status 结束步骤状态, success 是一个绿色的成功状态
+  -->
+  <el-steps :active="stepActive" finish-status="success">
+    <el-step title="步骤一" description="基本信息"></el-step>
+    <el-step title="步骤二" description="商品图片"></el-step>
+    <el-step title="步骤三" description="商品内容"></el-step>
+  </el-steps>
+
+  <!--
+    tab标签页
+
+      tab-position 用来设置tab标签的位置
+
+      参考 文档中的基础用法
+        http://element-cn.eleme.io/#/zh-CN/component/tabs#ji-chu-yong-fa
+      v-model 用来双向绑定当前激活的菜单名称
+
+      el-tab-pane
+        label 表示每个标签的名称
+  -->
+  <el-tabs v-model="tabActiveName" tab-position="left" @tab-click="changeTab">
+    <el-tab-pane name="basic" label="基本信息">
+      <!-- 表单 -->
+      <el-form ref="goodsAddForm" :model="goodsAddForm" label-width="80px">
+        <el-form-item label="商品名称">
+          <el-input v-model="goodsAddForm.goods_name"></el-input>
+        </el-form-item>
+        <el-form-item label="商品价格">
+          <el-input v-model="goodsAddForm.goods_price"></el-input>
+        </el-form-item>
+        <el-form-item label="商品重量">
+          <el-input v-model="goodsAddForm.goods_weight"></el-input>
+        </el-form-item>
+        <el-form-item label="商品数量">
+          <el-input v-model="goodsAddForm.goods_number"></el-input>
+        </el-form-item>
+        <el-form-item label="商品分类">
+          <!-- 数据源： goodsCategories v-model="goodsCategoriesSelectedOptions" -->
+          <el-cascader :options="goodsCategories" v-model="goodsCategoriesSelectedOptions" :props="{
+            label: 'cat_name',
+            value: 'cat_id'
+          }"
+            @change="changeGoodsCat">
+          </el-cascader>
+        </el-form-item>
+        <el-form-item label="是否促销">
+          <el-radio v-model="goodsAddForm.is_promote" :label="true">是</el-radio>
+          <el-radio v-model="goodsAddForm.is_promote" :label="false">否</el-radio>
+        </el-form-item>
+      </el-form>
+      <el-button type="primary" @click="changeNextStep(1, 'pic')">下一步</el-button>
+    </el-tab-pane>
+    <el-tab-pane name="pic" label="商品图片">
+      <!--
+        上传组件
+
+          action 图片上传接口地址
+          on-preview 点击上传后的图片，要触发的事件
+          on-remove 移除上传后的图片，要触发的事件
+          file-list 上传后的图片列表数据，是一个数组
+            数组的每一项是一个对象，name 属性表示图片名称，url 表示图片地址
+          list-type 表示列表类型
+
+        图片上传是elementui提供的功能，不是 axios 发送的请求
+        因此，配置的 baseUrl 、 token 不能使用！！！
+        所以，上传图片路径必须写完整的
+      -->
+      <el-upload class="upload-pic" action="http://localhost:8888/api/private/v1/upload" :headers="uploadHeaders"
+        :on-preview="handlePreview" :on-remove="handleRemove" :on-success="handleSuccess" :file-list="uploadFileList"
+        list-type="picture-card">
+        <el-button size="small" type="primary">点击上传</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+      </el-upload>
+      <el-button type="primary" @click="changeNextStep(2, 'content')">下一步</el-button>
+    </el-tab-pane>
+    <el-tab-pane name="content" label="商品内容">
+      <!-- 富文本编辑器 -->
+      <quill-editor v-model="goodsAddForm.goods_introduce">
+      </quill-editor>
+      <el-button type="primary" @click="addGoods">确定</el-button>
+    </el-tab-pane>
+  </el-tabs>
+</div>
